@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -144,8 +145,9 @@ class AuthController extends Controller
         if (! empty($data['fcm_token']) && is_string($data['fcm_token'])) {
             try {
                 UserFcmToken::query()->updateOrCreate(
-                    ['user_id' => $user->id, 'token' => $data['fcm_token']],
+                    ['user_id' => $user->id, 'token_hash' => hash('sha256', $data['fcm_token'])],
                     [
+                        'token' => $data['fcm_token'],
                         'platform' => $data['platform'] ?? null,
                         'device_id' => $data['device_id'] ?? null,
                         'last_seen_at' => now(),
@@ -216,8 +218,9 @@ class AuthController extends Controller
         $user->save();
 
         UserFcmToken::query()->updateOrCreate(
-            ['user_id' => $user->id, 'token' => $data['fcm_token']],
+            ['user_id' => $user->id, 'token_hash' => hash('sha256', $data['fcm_token'])],
             [
+                'token' => $data['fcm_token'],
                 'platform' => $data['platform'] ?? null,
                 'device_id' => $data['device_id'] ?? null,
                 'last_seen_at' => now(),
