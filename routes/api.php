@@ -40,6 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/donor/me', [DonorController::class, 'show']);
         Route::post('/donor', [DonorController::class, 'store']);
         Route::get('/donor/feed', [DonorController::class, 'feed']);
+        Route::get('/donors', [DonorController::class, 'index']);
 
         Route::get('/blood-requests/mine', [BloodRequestController::class, 'mine']);
         Route::post('/blood-requests', [BloodRequestController::class, 'store']);

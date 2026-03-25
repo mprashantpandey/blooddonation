@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DonorResource;
+use App\Models\City;
 use App\Models\Donor;
 use App\Support\BloodGroup;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,70 @@ use Illuminate\Validation\Rule;
 
 class DonorController extends Controller
 {
+    /**
+     * Public donor directory (authenticated): lists enabled + available donors.
+     * Optional filters: city_id, blood_group.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'blood_group' => ['nullable', 'string', Rule::in(BloodGroup::ALL)],
+        ]);
+
+        if (! empty($data['city_id'])) {
+            $city = City::query()->where('id', $data['city_id'])->where('status', 'active')->first();
+            if ($city === null) {
+                return response()->json(['message' => 'Selected city is not available.'], 422);
+            }
+        }
+
+        $me = $request->user();
+
+        $rows = Donor::query()
+            ->where('is_enabled', true)
+            ->where('is_available', true)
+            ->when(! empty($data['blood_group']), fn ($q) => $q->where('blood_group', $data['blood_group']))
+            ->whereHas('user', function ($u) use ($data) {
+                $u->where('is_blocked', false);
+                if (! empty($data['city_id'])) {
+                    $u->where('city_id', (int) $data['city_id']);
+                }
+            })
+            ->with(['user.city'])
+            ->orderByDesc('is_verified')
+            ->latest('id')
+            ->paginate(20);
+
+        $out = collect($rows->items())->map(function (Donor $d) use ($me) {
+            $u = $d->user;
+
+            return [
+                'id' => $d->id,
+                'blood_group' => $d->blood_group,
+                'is_verified' => (bool) $d->is_verified,
+                'is_available' => (bool) $d->is_available,
+                'user' => $u === null ? null : [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'mobile' => $u->mobile,
+                    'city' => $u->city ? ['id' => $u->city->id, 'city_name' => $u->city->city_name] : null,
+                    'area' => $u->area,
+                ],
+                'can_chat' => $u !== null && (int) $u->id !== (int) $me->id,
+            ];
+        })->values();
+
+        return response()->json([
+            'data' => $out,
+            'meta' => [
+                'current_page' => $rows->currentPage(),
+                'last_page' => $rows->lastPage(),
+                'total' => $rows->total(),
+            ],
+        ]);
+    }
+
     public function show(Request $request): JsonResponse|DonorResource
     {
         $donor = $request->user()->donor;
