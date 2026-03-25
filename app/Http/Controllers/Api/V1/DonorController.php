@@ -74,6 +74,7 @@ class DonorController extends Controller
             ->where('status', 'open')
             ->where('city_id', $user->city_id)
             ->where('blood_group', $donor->blood_group)
+            ->where('user_id', '!=', $user->id)
             ->latest()
             ->paginate(20);
 
