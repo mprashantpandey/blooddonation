@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Contracts\FirebaseIdTokenVerifier;
 use App\Models\City;
+use App\Models\AppSetting;
 use App\Models\Referral;
 use App\Models\User;
 use App\Models\WalletEntry;
+use App\Services\RewardsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +59,7 @@ class AuthController extends Controller
             }
 
             $user = DB::transaction(function () use ($data, $firebaseUid, $mobile) {
+                $settings = AppSetting::current();
                 $referrerId = null;
                 if (! empty($data['referral_code'])) {
                     $ref = strtoupper(trim($data['referral_code']));
@@ -78,24 +81,33 @@ class AuthController extends Controller
                     'password' => null,
                 ]);
 
-                if ($referrerId !== null) {
+                if ($referrerId !== null && $settings->feature_referrals_enabled) {
                     $referral = Referral::query()->firstOrCreate(
                         ['new_user_id' => $newUser->id],
                         ['referrer_id' => $referrerId]
                     );
                     if ($referral->wasRecentlyCreated) {
-                        WalletEntry::query()->create([
-                            'user_id' => $referrerId,
-                            'points' => 50,
-                            'type' => 'referral',
-                            'description' => 'Referral bonus',
-                        ]);
-                        WalletEntry::query()->create([
-                            'user_id' => $newUser->id,
-                            'points' => 20,
-                            'type' => 'referral',
-                            'description' => 'Welcome referral bonus',
-                        ]);
+                        $referrerPts = max(0, (int) $settings->points_referral_referrer);
+                        $newUserPts = max(0, (int) $settings->points_referral_new_user);
+
+                        if ($referrerPts > 0) {
+                            WalletEntry::query()->create([
+                                'user_id' => $referrerId,
+                                'points' => $referrerPts,
+                                'type' => 'referral',
+                                'description' => 'Referral bonus',
+                            ]);
+                        }
+                        if ($newUserPts > 0) {
+                            WalletEntry::query()->create([
+                                'user_id' => $newUser->id,
+                                'points' => $newUserPts,
+                                'type' => 'referral',
+                                'description' => 'Welcome referral bonus',
+                            ]);
+                        }
+
+                        app(RewardsService::class)->applyAfterReferralCreated((int) $referrerId);
                     }
                 }
 

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\Donation;
 use App\Models\WalletEntry;
+use App\Services\RewardsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,9 +36,16 @@ class DonationController extends Controller
 
     public function approve(Request $request, Donation $donation): RedirectResponse
     {
+        $settings = AppSetting::current();
+        $defaultPoints = max(0, (int) $settings->points_donation_default);
+
         $validated = $request->validate([
-            'points' => ['required', 'integer', 'min:0', 'max:10000'],
+            'points' => ['nullable', 'integer', 'min:0', 'max:10000'],
         ]);
+
+        if (! array_key_exists('points', $validated) || $validated['points'] === null) {
+            $validated['points'] = $defaultPoints;
+        }
 
         DB::transaction(function () use ($donation, $validated) {
             $donation->refresh();
@@ -70,6 +79,9 @@ class DonationController extends Controller
                 }
             }
         });
+
+        $donation->loadMissing(['donor']);
+        app(RewardsService::class)->applyAfterDonationApproved($donation);
 
         return back()->with('status', 'Donation approved and wallet updated.');
     }

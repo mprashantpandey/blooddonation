@@ -7,8 +7,11 @@ use App\Http\Controllers\Admin\CitySliderController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DonationController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\ReferralController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\PointsController;
+use App\Http\Controllers\Admin\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -45,6 +48,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('users/{user}/block', [UserController::class, 'toggleBlock'])->name('users.block.toggle');
         Route::patch('users/{user}/donor-enabled', [UserController::class, 'toggleDonorEnabled'])->name('users.donor.enabled.toggle');
 
+        Route::get('referrals', [ReferralController::class, 'index'])->name('referrals.index');
+
+        Route::get('points', [PointsController::class, 'index'])->name('points.index');
+        Route::patch('points/{user}', [PointsController::class, 'adjust'])->name('points.adjust');
+
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
+
         Route::get('requests', [BloodRequestController::class, 'index'])->name('requests.index');
         Route::patch('requests/{bloodRequest}/status', [BloodRequestController::class, 'updateStatus'])->name('requests.status.update');
 
@@ -62,6 +73,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('settings/features', [SettingsController::class, 'editFeatures'])->name('settings.features');
         Route::put('settings/features', [SettingsController::class, 'updateFeatures'])->name('settings.features.update');
+
+        Route::get('settings/rewards', [SettingsController::class, 'editRewards'])->name('settings.rewards');
+        Route::put('settings/rewards', [SettingsController::class, 'updateRewards'])->name('settings.rewards.update');
 
         Route::get('settings/auth', [SettingsController::class, 'editAuth'])->name('settings.auth');
         Route::put('settings/auth', [SettingsController::class, 'updateAuth'])->name('settings.auth.update');

@@ -100,6 +100,39 @@ class SettingsController extends Controller
         return $this->saveAndRedirect($settings, 'admin.settings.features', 'Modules saved.');
     }
 
+    public function editRewards(): View
+    {
+        return view('admin.settings.rewards', [
+            'settings' => $this->settings(),
+        ]);
+    }
+
+    public function updateRewards(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'points_donation_default' => ['required', 'integer', 'min:0', 'max:10000'],
+            'points_referral_referrer' => ['required', 'integer', 'min:0', 'max:10000'],
+            'points_referral_new_user' => ['required', 'integer', 'min:0', 'max:10000'],
+            'verified_after_approved_donations' => ['required', 'integer', 'min:1', 'max:50'],
+
+            'badge_donation_1_threshold' => ['required', 'integer', 'min:1', 'max:50'],
+            'badge_donation_3_threshold' => ['required', 'integer', 'min:1', 'max:50'],
+            'badge_donation_5_threshold' => ['required', 'integer', 'min:1', 'max:50'],
+            'badge_referral_threshold' => ['required', 'integer', 'min:1', 'max:200'],
+
+            'badge_donation_1_name' => ['required', 'string', 'max:64'],
+            'badge_donation_3_name' => ['required', 'string', 'max:64'],
+            'badge_donation_5_name' => ['required', 'string', 'max:64'],
+            'badge_referral_name' => ['required', 'string', 'max:64'],
+            'badge_verified_name' => ['required', 'string', 'max:64'],
+        ]);
+
+        $settings = $this->settings();
+        $settings->fill($validated);
+
+        return $this->saveAndRedirect($settings, 'admin.settings.rewards', 'Rewards settings saved.');
+    }
+
     public function editAuth(): View
     {
         return view('admin.settings.auth', [

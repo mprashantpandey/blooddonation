@@ -23,6 +23,14 @@
     <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2m12 0H7m10-11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     Users
 </a>
+<a href="{{ route('admin.referrals.index') }}" class="{{ $active('admin.referrals.*') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
+    <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 8c0-2.21-1.79-4-4-4S8 5.79 8 8s1.79 4 4 4 4-1.79 4-4zM3 20a7 7 0 0118 0"/></svg>
+    Referrals
+</a>
+<a href="{{ route('admin.points.index') }}" class="{{ $active('admin.points.*') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
+    <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-3.314 0-6 1.791-6 4s2.686 4 6 4 6-1.791 6-4-2.686-4-6-4zM6 12v6m12-6v6"/></svg>
+    Points
+</a>
 <a href="{{ route('admin.requests.index') }}" class="{{ $active('admin.requests.*') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
     <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h8m-8 5h8m-8 5h5M4 4h16v16H4V4z"/></svg>
     Blood requests
@@ -30,6 +38,10 @@
 <a href="{{ route('admin.donations.index') }}" class="{{ $active('admin.donations.*') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
     <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3c4.5 4 6 6.5 6 9a6 6 0 11-12 0c0-2.5 1.5-5 6-9z"/></svg>
     Donation proofs
+</a>
+<a href="{{ route('admin.notifications.index') }}" class="{{ $active('admin.notifications.*') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
+    <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0"/></svg>
+    Notifications
 </a>
 <a href="{{ route('admin.city-sliders.index') }}" class="{{ $active('admin.city-sliders.*') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
     <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 17h18M6 7v10m12-10v10M9 11h6m-6 3h6"/></svg>
@@ -48,6 +60,10 @@
 <a href="{{ route('admin.settings.features') }}" class="{{ $active('admin.settings.features') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
     <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
     Modules
+</a>
+<a href="{{ route('admin.settings.rewards') }}" class="{{ $active('admin.settings.rewards') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
+    <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-3 0-6 2-6 5s3 5 6 5 6-2 6-5-3-5-6-5zm0 0V4m-4 4l-2-2m12 2l2-2"/></svg>
+    Rewards
 </a>
 <a href="{{ route('admin.settings.auth') }}" class="{{ $active('admin.settings.auth') }} flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition">
     <svg class="h-5 w-5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>

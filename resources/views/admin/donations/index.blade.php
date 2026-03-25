@@ -60,7 +60,7 @@
                                     <form method="post" action="{{ route('admin.donations.approve', $donation) }}" class="flex items-center gap-2">
                                         @csrf
                                         @method('PATCH')
-                                        <input name="points" type="number" min="0" max="10000" value="{{ $donation->status === 'approved' ? $donation->points : 100 }}"
+                                        <input name="points" type="number" min="0" max="10000" value="{{ $donation->status === 'approved' ? $donation->points : \App\Models\AppSetting::current()->points_donation_default }}"
                                             class="w-24 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-900" />
                                         <button class="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:border-emerald-300">Approve</button>
                                     </form>
