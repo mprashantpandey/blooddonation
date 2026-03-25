@@ -6,12 +6,14 @@ use App\Models\Message;
 use App\Models\UserFcmToken;
 use App\Services\FcmService;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class SendMessagePushJob implements ShouldQueue
 {
-    use Queueable;
+    use Dispatchable, Queueable;
 
     public function __construct(public int $messageId) {}
 
@@ -53,7 +55,7 @@ class SendMessagePushJob implements ShouldQueue
 
         $senderName = (string) ($msg->sender?->name ?? 'New message');
         $title = $senderName;
-        $body = mb_substr((string) $msg->message, 0, 140);
+        $body = Str::limit((string) $msg->message, 140, '…');
 
         $data = [
             'type' => 'message',
