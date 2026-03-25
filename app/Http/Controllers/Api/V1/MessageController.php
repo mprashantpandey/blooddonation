@@ -103,8 +103,9 @@ class MessageController extends Controller
             'sent_at' => now(),
         ]);
 
-        // Push notify receiver devices (async if queue is configured).
-        dispatch(new SendMessagePushJob((int) $msg->id));
+        // Push notify receiver devices. We run this sync to avoid relying on a queue worker.
+        // If FCM isn't configured, the job will no-op.
+        SendMessagePushJob::dispatchSync((int) $msg->id);
 
         return response()->json([
             'data' => [
