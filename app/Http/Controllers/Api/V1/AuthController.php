@@ -52,6 +52,7 @@ class AuthController extends Controller
         }
 
         $user = User::query()->where('firebase_uid', $firebaseUid)->first();
+        $isNew = false;
 
         if ($user === null) {
             if (User::query()->where('mobile', $mobile)->exists()) {
@@ -113,6 +114,7 @@ class AuthController extends Controller
 
                 return $newUser;
             });
+            $isNew = true;
         } else {
             if (User::query()->where('mobile', $mobile)->where('id', '!=', $user->id)->exists()) {
                 return response()->json(['message' => 'This mobile number is already in use.'], 422);
@@ -136,10 +138,13 @@ class AuthController extends Controller
 
         $token = $user->createToken('mobile')->plainTextToken;
         $user->load(['donor', 'city']);
+        $profileComplete = is_string($user->name) && trim($user->name) !== '' && $user->city_id !== null;
 
         return response()->json([
             'token' => $token,
             'token_type' => 'Bearer',
+            'is_new' => $isNew,
+            'profile_complete' => $profileComplete,
             'user' => (new UserResource($user))->toArray($request),
         ]);
     }

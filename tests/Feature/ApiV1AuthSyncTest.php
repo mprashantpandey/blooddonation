@@ -32,7 +32,7 @@ class ApiV1AuthSyncTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonStructure(['token', 'token_type', 'user' => ['id', 'mobile', 'referral_code']]);
+            ->assertJsonStructure(['token', 'token_type', 'is_new', 'profile_complete', 'user' => ['id', 'mobile', 'referral_code']]);
 
         $this->assertDatabaseHas('users', [
             'firebase_uid' => 'uid-abc',
