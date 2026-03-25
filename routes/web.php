@@ -57,6 +57,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 
         Route::get('requests', [BloodRequestController::class, 'index'])->name('requests.index');
+        Route::get('requests/{bloodRequest}', [BloodRequestController::class, 'show'])->name('requests.show');
         Route::patch('requests/{bloodRequest}/status', [BloodRequestController::class, 'updateStatus'])->name('requests.status.update');
 
         Route::get('donations', [DonationController::class, 'index'])->name('donations.index');

@@ -11,6 +11,7 @@ class Donor extends Model
     protected $fillable = [
         'user_id',
         'blood_group',
+        'age',
         'last_donation_date',
         'is_available',
         'is_enabled',
@@ -21,6 +22,7 @@ class Donor extends Model
     {
         return [
             'last_donation_date' => 'date',
+            'age' => 'integer',
             'is_available' => 'boolean',
             'is_enabled' => 'boolean',
             'is_verified' => 'boolean',

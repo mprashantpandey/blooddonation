@@ -16,6 +16,7 @@ class DonorResource extends JsonResource
         return [
             'id' => $this->id,
             'blood_group' => $this->blood_group,
+            'age' => $this->age,
             'last_donation_date' => $this->last_donation_date?->format('Y-m-d'),
             'is_available' => $this->is_available,
             'is_enabled' => $this->is_enabled,

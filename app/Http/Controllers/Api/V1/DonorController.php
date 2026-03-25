@@ -97,12 +97,16 @@ class DonorController extends Controller
 
         $data = $request->validate([
             'blood_group' => ['required', 'string', Rule::in(BloodGroup::ALL)],
+            'age' => ['nullable', 'integer', 'min:16', 'max:120'],
             'last_donation_date' => 'nullable|date',
             'is_available' => 'sometimes|boolean',
         ]);
 
         $donor = Donor::query()->firstOrNew(['user_id' => $request->user()->id]);
         $donor->blood_group = $data['blood_group'];
+        if (array_key_exists('age', $data)) {
+            $donor->age = $data['age'];
+        }
         if (array_key_exists('last_donation_date', $data)) {
             $donor->last_donation_date = $data['last_donation_date'];
         }

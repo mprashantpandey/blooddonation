@@ -16,6 +16,14 @@ class BloodRequestController extends Controller
 
         $requests = BloodRequest::query()
             ->with(['city', 'user'])
+            ->withCount([
+                'requestResponses as interested_count' => function ($q) {
+                    $q->where('status', 'interested');
+                },
+                'requestResponses as ignored_count' => function ($q) {
+                    $q->where('status', 'ignored');
+                },
+            ])
             ->when(in_array($status, ['open', 'closed', 'fulfilled'], true), function ($query) use ($status) {
                 $query->where('status', $status);
             })
@@ -26,6 +34,30 @@ class BloodRequestController extends Controller
         return view('admin.requests.index', [
             'requests' => $requests,
             'statusFilter' => $status,
+        ]);
+    }
+
+    public function show(BloodRequest $bloodRequest): View
+    {
+        $bloodRequest->load([
+            'city',
+            'user',
+            'requestResponses.donor.user.city',
+            'requestResponses.donor.user.badges',
+        ]);
+
+        $responses = $bloodRequest->requestResponses
+            ->sortByDesc('created_at')
+            ->values();
+
+        $interested = $responses->where('status', 'interested')->values();
+        $ignored = $responses->where('status', 'ignored')->values();
+
+        return view('admin.requests.show', [
+            'requestModel' => $bloodRequest,
+            'responses' => $responses,
+            'interested' => $interested,
+            'ignored' => $ignored,
         ]);
     }
 

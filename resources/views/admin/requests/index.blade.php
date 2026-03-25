@@ -28,6 +28,7 @@
                         <th class="pb-3 pr-4">Request</th>
                         <th class="pb-3 pr-4">Requester</th>
                         <th class="pb-3 pr-4">City</th>
+                        <th class="pb-3 pr-4">Responses</th>
                         <th class="pb-3">Status</th>
                     </tr>
                 </thead>
@@ -40,9 +41,25 @@
                                 @if ($requestModel->message)
                                     <div class="mt-1 text-xs text-zinc-500">{{ $requestModel->message }}</div>
                                 @endif
+                                <div class="mt-2">
+                                    <a href="{{ route('admin.requests.show', $requestModel) }}" class="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-800 hover:border-zinc-300">
+                                        View details
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
                             </td>
                             <td class="py-3 pr-4 text-zinc-700">{{ $requestModel->user?->name ?? 'Unknown' }}</td>
                             <td class="py-3 pr-4 text-zinc-700">{{ $requestModel->city?->city_name ?? '—' }}</td>
+                            <td class="py-3 pr-4">
+                                @php
+                                    $interestedCount = (int) ($requestModel->interested_count ?? 0);
+                                    $ignoredCount = (int) ($requestModel->ignored_count ?? 0);
+                                @endphp
+                                <div class="flex flex-wrap gap-2 text-xs">
+                                    <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">Interested: {{ $interestedCount }}</span>
+                                    <span class="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 font-semibold text-zinc-700">Ignored: {{ $ignoredCount }}</span>
+                                </div>
+                            </td>
                             <td class="py-3">
                                 <form method="post" action="{{ route('admin.requests.status.update', $requestModel) }}" class="flex gap-2">
                                     @csrf
@@ -58,7 +75,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="py-8 text-center text-zinc-500">No requests found.</td>
+                            <td colspan="5" class="py-8 text-center text-zinc-500">No requests found.</td>
                         </tr>
                     @endforelse
                 </tbody>
