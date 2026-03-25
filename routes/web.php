@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CitySliderController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DonationController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -22,7 +23,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware('auth:admin')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/', fn () => redirect()->route('admin.dashboard'))->name('home');
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
         Route::get('cities', [CityController::class, 'index'])->name('cities.index');
         Route::post('cities', [CityController::class, 'store'])->name('cities.store');
