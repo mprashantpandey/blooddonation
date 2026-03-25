@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\CitySliderController;
 use App\Http\Controllers\Api\V1\DonorController;
 use App\Http\Controllers\Api\V1\DonationController;
 use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\WalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,5 +60,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/messages/threads', [MessageController::class, 'threads']);
         Route::get('/messages/with/{user}', [MessageController::class, 'withUser']);
         Route::post('/messages/with/{user}', [MessageController::class, 'send']);
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
     });
 });

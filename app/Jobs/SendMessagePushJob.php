@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Message;
+use App\Models\Notification;
 use App\Models\UserFcmToken;
 use App\Services\FcmService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,10 +20,6 @@ class SendMessagePushJob implements ShouldQueue
 
     public function handle(FcmService $fcm): void
     {
-        if (! $fcm->isConfigured()) {
-            return;
-        }
-
         $msg = Message::query()
             ->with(['sender', 'receiver'])
             ->find($this->messageId);
@@ -32,6 +29,25 @@ class SendMessagePushJob implements ShouldQueue
         }
 
         $receiverId = (int) $msg->receiver_id;
+
+        // Persist notification (sync across devices).
+        Notification::query()->create([
+            'user_id' => $receiverId,
+            'type' => 'message',
+            'title' => (string) ($msg->sender?->name ?? 'New message'),
+            'body' => Str::limit((string) $msg->message, 500, '…'),
+            'data' => [
+                'type' => 'message',
+                'sender_id' => (string) $msg->sender_id,
+                'message_id' => (string) $msg->id,
+            ],
+            'sent_at' => now(),
+        ]);
+
+        if (! $fcm->isConfigured()) {
+            return;
+        }
+
         $tokens = UserFcmToken::query()
             ->where('user_id', $receiverId)
             ->pluck('token')

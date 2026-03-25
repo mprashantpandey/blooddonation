@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\BloodRequest;
 use App\Models\Donor;
+use App\Models\Notification;
 use App\Models\UserFcmToken;
 use App\Services\FcmService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -91,6 +92,25 @@ class NotifyMatchingDonorsOfBloodRequestJob implements ShouldQueue
             'request_id' => (string) $request->id,
             'city_id' => (string) $request->city_id,
         ];
+
+        // Persist notifications for recipients (sync across devices).
+        foreach ($donors as $donor) {
+            $user = $donor->user;
+            if ($user === null) {
+                continue;
+            }
+            if ((int) $user->id === (int) $request->user_id) {
+                continue;
+            }
+            Notification::query()->create([
+                'user_id' => (int) $user->id,
+                'type' => 'blood_request',
+                'title' => $title,
+                'body' => $body,
+                'data' => $data,
+                'sent_at' => now(),
+            ]);
+        }
 
         $result = $fcm->sendToTokens($tokens, $title, $body, $data);
 

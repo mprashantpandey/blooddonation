@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Donor;
+use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserFcmToken;
 use App\Services\FcmService;
@@ -39,6 +40,7 @@ class NotificationController extends Controller
         $onlyAvailable = $request->boolean('only_available_donors');
 
         $tokens = [];
+        $recipientUserIds = [];
         if ($validated['audience'] === 'donors') {
             $q = Donor::query()
                 ->where('is_enabled', true)
@@ -57,6 +59,7 @@ class NotificationController extends Controller
                 if ($user === null) {
                     continue;
                 }
+                $recipientUserIds[] = (int) $user->id;
                 $userTokens = $user->fcmTokens->pluck('token')->map(fn ($t) => trim((string) $t))->filter()->all();
                 if ($userTokens !== []) {
                     $tokens = array_merge($tokens, $userTokens);
@@ -74,6 +77,7 @@ class NotificationController extends Controller
                 ->with('fcmTokens');
 
             foreach ($q->get() as $user) {
+                $recipientUserIds[] = (int) $user->id;
                 $userTokens = $user->fcmTokens->pluck('token')->map(fn ($t) => trim((string) $t))->filter()->all();
                 if ($userTokens !== []) {
                     $tokens = array_merge($tokens, $userTokens);
@@ -95,6 +99,20 @@ class NotificationController extends Controller
             'type' => 'admin_broadcast',
             'audience' => $validated['audience'],
         ];
+
+        // Persist notifications for recipients (sync across devices).
+        $recipientUserIds = array_values(array_unique($recipientUserIds));
+        foreach ($recipientUserIds as $uid) {
+            Notification::query()->create([
+                'user_id' => (int) $uid,
+                'type' => 'admin_broadcast',
+                'title' => $validated['title'],
+                'body' => $validated['body'],
+                'data' => $data,
+                'sent_at' => now(),
+            ]);
+        }
+
         $result = $fcm->sendToTokens($tokens, $validated['title'], $validated['body'], $data);
 
         return back()->with('status', "Notification queued. Sent: {$result['sent']}, failed: {$result['failed']}.");
