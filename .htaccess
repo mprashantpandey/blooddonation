@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # If the request is already for /public, don't rewrite again.
+  RewriteRule ^public/ - [L]
+
+  # Serve existing files/directories from the root if present (rare in Laravel root).
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Forward everything else into Laravel's public/ folder (cpanel public_html style).
+  RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
