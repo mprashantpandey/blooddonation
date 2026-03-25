@@ -1,15 +1,29 @@
 <IfModule mod_rewrite.c>
+  <IfModule mod_negotiation.c>
+    Options -MultiViews -Indexes
+  </IfModule>
+
   RewriteEngine On
 
-  # If the request is already for /public, don't rewrite again.
-  RewriteRule ^public/ - [L]
+  # Handle Authorization Header (for Sanctum / Bearer tokens)
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-  # Serve existing files/directories from the root if present (rare in Laravel root).
+  # Handle X-XSRF-Token Header
+  RewriteCond %{HTTP:x-xsrf-token} .
+  RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+  # Serve existing files/directories from the root if present
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Forward everything else into Laravel's public/ folder (cpanel public_html style).
-  RewriteRule ^(.*)$ public/$1 [L]
+  # If a matching file/dir exists under public/, serve it (assets like /build, /storage, favicon, robots.txt)
+  RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+  RewriteRule ^(.+)$ public/$1 [L]
+
+  # Otherwise, send all requests to Laravel front controller at root
+  RewriteRule ^ index.php [L]
 </IfModule>
 
