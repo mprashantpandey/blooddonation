@@ -1,0 +1,136 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* DataTables light theme overrides (admin light mode) */
+.dataTables_wrapper {
+    --dt-border: rgba(229, 231, 235, 0.95);
+    --dt-muted: rgba(100, 116, 139, 0.95);
+    --dt-text: rgba(17, 24, 39, 0.95);
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    background: #ffffff !important;
+    color: var(--dt-text) !important;
+    border: 1px solid var(--dt-border) !important;
+    border-radius: 0.875rem !important;
+    padding: 0.55rem 0.8rem !important;
+    min-height: 42px !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: var(--dt-muted) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    background: #ffffff !important;
+    border: 1px solid var(--dt-border) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.42rem 0.72rem !important;
+    margin-left: 0.35rem !important;
+    min-width: 38px !important;
+    text-align: center !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: rgba(239, 68, 68, 0.08) !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: rgba(239, 68, 68, 0.95) !important;
+    border-color: rgba(239, 68, 68, 0.95) !important;
+    color: #ffffff !important;
+}
+
+table.dataTable thead th {
+    color: var(--dt-muted) !important;
+    border-bottom: 1px solid var(--dt-border) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    padding: 0.85rem 0.65rem !important;
+    white-space: nowrap !important;
+}
+
+table.dataTable tbody td {
+    color: var(--dt-text) !important;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.9) !important;
+    padding: 0.85rem 0.65rem !important;
+    vertical-align: top !important;
+}
+
+table.dataTable tbody tr:hover {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+.dt-toolbar,
+.dt-footer {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin: 0.5rem 0 0.85rem !important;
+}
+
+.dt-toolbar div.dataTables_length,
+.dt-toolbar div.dataTables_filter,
+.dt-footer div.dataTables_info,
+.dt-footer div.dataTables_paginate {
+    margin: 0 !important;
+}
+
+.dataTables_wrapper .dataTables_filter label {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    margin-left: auto !important;
+}
+
+.dt-toolbar .dataTables_filter {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+
+.dt-toolbar .dataTables_length {
+    flex: 0 0 auto !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    width: min(360px, 100%) !important;
+}
+
+@media (max-width: 640px) {
+    .dt-toolbar,
+    .dt-footer {
+        gap: 0.5rem !important;
+        margin: 0.35rem 0 0.6rem !important;
+    }
+
+    .dt-footer div.dataTables_paginate {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        margin-left: 0.25rem !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100% !important;
+    }
+}
