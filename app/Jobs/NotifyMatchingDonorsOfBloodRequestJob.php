@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\BloodRequest;
 use App\Models\Donor;
+use App\Models\UserFcmToken;
 use App\Services\FcmService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -45,11 +46,9 @@ class NotifyMatchingDonorsOfBloodRequestJob implements ShouldQueue
             ->where('is_enabled', true)
             ->whereHas('user', function ($q) use ($request) {
                 $q->where('city_id', $request->city_id)
-                    ->whereNotNull('fcm_token')
-                    ->where('fcm_token', '!=', '')
                     ->where('is_blocked', false);
             })
-            ->with('user')
+            ->with(['user', 'user.fcmTokens'])
             ->get();
 
         $tokens = [];
@@ -61,9 +60,15 @@ class NotifyMatchingDonorsOfBloodRequestJob implements ShouldQueue
             if ((int) $user->id === (int) $request->user_id) {
                 continue;
             }
-            $t = trim((string) $user->fcm_token);
-            if ($t !== '') {
-                $tokens[] = $t;
+            $userTokens = $user->fcmTokens->pluck('token')->map(fn ($t) => trim((string) $t))->filter()->all();
+            if ($userTokens !== []) {
+                $tokens = array_merge($tokens, $userTokens);
+                continue;
+            }
+            // legacy fallback
+            $legacy = trim((string) $user->fcm_token);
+            if ($legacy !== '') {
+                $tokens[] = $legacy;
             }
         }
 

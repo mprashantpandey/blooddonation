@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Donor;
 use App\Models\User;
+use App\Models\UserFcmToken;
 use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,30 +45,43 @@ class NotificationController extends Controller
                 ->when($onlyAvailable, fn ($qq) => $qq->where('is_available', true))
                 ->when(! empty($validated['blood_group']), fn ($qq) => $qq->where('blood_group', $validated['blood_group']))
                 ->whereHas('user', function ($u) use ($validated) {
-                    $u->whereNotNull('fcm_token')->where('fcm_token', '!=', '')->where('is_blocked', false);
+                    $u->where('is_blocked', false);
                     if (! empty($validated['city_id'])) {
                         $u->where('city_id', (int) $validated['city_id']);
                     }
                 })
-                ->with('user');
+                ->with(['user', 'user.fcmTokens']);
 
             foreach ($q->get() as $donor) {
-                $t = trim((string) ($donor->user?->fcm_token ?? ''));
-                if ($t !== '') {
-                    $tokens[] = $t;
+                $user = $donor->user;
+                if ($user === null) {
+                    continue;
+                }
+                $userTokens = $user->fcmTokens->pluck('token')->map(fn ($t) => trim((string) $t))->filter()->all();
+                if ($userTokens !== []) {
+                    $tokens = array_merge($tokens, $userTokens);
+                    continue;
+                }
+                $legacy = trim((string) ($user->fcm_token ?? ''));
+                if ($legacy !== '') {
+                    $tokens[] = $legacy;
                 }
             }
         } else {
             $q = User::query()
                 ->where('is_blocked', false)
-                ->whereNotNull('fcm_token')
-                ->where('fcm_token', '!=', '')
-                ->when(! empty($validated['city_id']), fn ($qq) => $qq->where('city_id', (int) $validated['city_id']));
+                ->when(! empty($validated['city_id']), fn ($qq) => $qq->where('city_id', (int) $validated['city_id']))
+                ->with('fcmTokens');
 
-            foreach ($q->get(['fcm_token']) as $user) {
-                $t = trim((string) ($user->fcm_token ?? ''));
-                if ($t !== '') {
-                    $tokens[] = $t;
+            foreach ($q->get() as $user) {
+                $userTokens = $user->fcmTokens->pluck('token')->map(fn ($t) => trim((string) $t))->filter()->all();
+                if ($userTokens !== []) {
+                    $tokens = array_merge($tokens, $userTokens);
+                    continue;
+                }
+                $legacy = trim((string) ($user->fcm_token ?? ''));
+                if ($legacy !== '') {
+                    $tokens[] = $legacy;
                 }
             }
         }

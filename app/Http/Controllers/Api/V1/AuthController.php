@@ -9,6 +9,7 @@ use App\Models\City;
 use App\Models\AppSetting;
 use App\Models\Referral;
 use App\Models\User;
+use App\Models\UserFcmToken;
 use App\Models\WalletEntry;
 use App\Services\RewardsService;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +28,8 @@ class AuthController extends Controller
             'area' => 'nullable|string|max:255',
             'referral_code' => 'nullable|string|max:32',
             'fcm_token' => 'nullable|string|max:4096',
+            'platform' => 'nullable|string|max:32',
+            'device_id' => 'nullable|string|max:191',
         ]);
 
         /** @var FirebaseIdTokenVerifier $verifier */
@@ -78,6 +81,7 @@ class AuthController extends Controller
                     'area' => $data['area'] ?? null,
                     'referred_by_user_id' => $referrerId,
                     'referral_code' => $this->uniqueReferralCode(),
+                    // legacy single-token field kept for backward compatibility
                     'fcm_token' => $data['fcm_token'] ?? null,
                     'password' => null,
                 ]);
@@ -136,6 +140,22 @@ class AuthController extends Controller
             $user->save();
         }
 
+        // Multi-device token registration (non-blocking).
+        if (! empty($data['fcm_token']) && is_string($data['fcm_token'])) {
+            try {
+                UserFcmToken::query()->updateOrCreate(
+                    ['user_id' => $user->id, 'token' => $data['fcm_token']],
+                    [
+                        'platform' => $data['platform'] ?? null,
+                        'device_id' => $data['device_id'] ?? null,
+                        'last_seen_at' => now(),
+                    ]
+                );
+            } catch (\Throwable) {
+                // ignore token persistence errors; auth should still succeed
+            }
+        }
+
         $token = $user->createToken('mobile')->plainTextToken;
         $user->load(['donor', 'city']);
         $profileComplete = is_string($user->name) && trim($user->name) !== '' && $user->city_id !== null;
@@ -185,12 +205,24 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'fcm_token' => 'required|string|max:4096',
+            'platform' => 'nullable|string|max:32',
+            'device_id' => 'nullable|string|max:191',
         ]);
 
         /** @var User $user */
         $user = $request->user();
+        // legacy field updated for compatibility, but we store multiple tokens too.
         $user->fcm_token = $data['fcm_token'];
         $user->save();
+
+        UserFcmToken::query()->updateOrCreate(
+            ['user_id' => $user->id, 'token' => $data['fcm_token']],
+            [
+                'platform' => $data['platform'] ?? null,
+                'device_id' => $data['device_id'] ?? null,
+                'last_seen_at' => now(),
+            ]
+        );
 
         return response()->json(['ok' => true]);
     }

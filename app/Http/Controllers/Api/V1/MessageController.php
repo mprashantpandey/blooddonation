@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendMessagePushJob;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -101,6 +102,9 @@ class MessageController extends Controller
             'message' => $data['message'],
             'sent_at' => now(),
         ]);
+
+        // Push notify receiver devices (async if queue is configured).
+        dispatch(new SendMessagePushJob((int) $msg->id));
 
         return response()->json([
             'data' => [

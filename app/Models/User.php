@@ -86,4 +86,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(BloodRequest::class);
     }
+
+    public function fcmTokens(): HasMany
+    {
+        return $this->hasMany(UserFcmToken::class);
+    }
 }
