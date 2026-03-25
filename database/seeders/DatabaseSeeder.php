@@ -27,13 +27,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        Admin::query()->firstOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Administrator',
-                'password' => Hash::make('password'),
-            ]
-        );
+        $this->call(AdminSeeder::class);
 
         AppSetting::current();
     }
