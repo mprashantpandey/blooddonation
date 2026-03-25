@@ -63,7 +63,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('donations/{donation}/approve', [DonationController::class, 'approve'])->name('donations.approve');
         Route::patch('donations/{donation}/reject', [DonationController::class, 'reject'])->name('donations.reject');
 
-        Route::redirect('settings', 'settings/branding')->name('settings');
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings');
 
         Route::get('settings/branding', [SettingsController::class, 'editBranding'])->name('settings.branding');
         Route::put('settings/branding', [SettingsController::class, 'updateBranding'])->name('settings.branding.update');

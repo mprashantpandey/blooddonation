@@ -23,6 +23,40 @@ class SettingsController extends Controller
         return redirect()->route($route)->with('status', $message);
     }
 
+    public function index(Request $request): View
+    {
+        $tab = (string) $request->query('tab', 'branding');
+        $allowed = ['branding', 'welcome', 'features', 'rewards', 'auth', 'firebase', 'cron'];
+        if (! in_array($tab, $allowed, true)) {
+            $tab = 'branding';
+        }
+
+        $settings = $this->settings();
+
+        $firebasePreview = '';
+        $fcmServicePreview = '';
+        $webPreview = '';
+        if ($tab === 'firebase') {
+            if (is_string($settings->firebase_options_json) && $settings->firebase_options_json !== '') {
+                $firebasePreview = $settings->firebase_options_json;
+            }
+            if (is_string($settings->fcm_service_account_json) && $settings->fcm_service_account_json !== '') {
+                $fcmServicePreview = $settings->fcm_service_account_json;
+            }
+            if (is_string($settings->firebase_web_credentials_json) && $settings->firebase_web_credentials_json !== '') {
+                $webPreview = $settings->firebase_web_credentials_json;
+            }
+        }
+
+        return view('admin.settings.index', [
+            'tab' => $tab,
+            'settings' => $settings,
+            'firebase_preview' => $firebasePreview,
+            'fcm_service_preview' => $fcmServicePreview,
+            'firebase_web_preview' => $webPreview,
+        ]);
+    }
+
     public function editBranding(): View
     {
         return view('admin.settings.branding', [
