@@ -143,6 +143,16 @@ class ApiV1BloodRequestTest extends TestCase
             'status' => 'open',
         ]);
 
+        $visibleOtherGroup = BloodRequest::query()->create([
+            'patient_name' => 'Visible 2',
+            'user_id' => $sameCityRequester->id,
+            'blood_group' => 'O+',
+            'city_id' => $cityA->id,
+            'hospital' => 'A Hospital',
+            'message' => '[EMERGENCY] Same city other group',
+            'status' => 'open',
+        ]);
+
         BloodRequest::query()->create([
             'patient_name' => 'Other City',
             'user_id' => $otherCityRequester->id,
@@ -167,7 +177,8 @@ class ApiV1BloodRequestTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/v1/donor/feed');
 
         $response->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $visible->id);
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $visible->id)
+            ->assertJsonPath('data.1.id', $visibleOtherGroup->id);
     }
 }
