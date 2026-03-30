@@ -41,12 +41,24 @@ class BloodRequestController extends Controller
             return response()->json(['message' => 'Selected city is not available.'], 422);
         }
 
+        BloodRequest::query()
+            ->where('user_id', $request->user()->id)
+            ->where('status', 'open')
+            ->update(['status' => 'closed']);
+
+        $incomingMessage = trim((string) ($data['message'] ?? ''));
+        $message = '[EMERGENCY]';
+        if ($incomingMessage !== '') {
+            $cleanIncoming = preg_replace('/^\[[A-Z_]+\]\s*/', '', $incomingMessage) ?? $incomingMessage;
+            $message = '[EMERGENCY] '.$cleanIncoming;
+        }
+
         $bloodRequest = BloodRequest::query()->create([
             'patient_name' => $data['patient_name'],
             'blood_group' => $data['blood_group'],
             'city_id' => $data['city_id'],
             'hospital' => $data['hospital'],
-            'message' => $data['message'] ?? null,
+            'message' => $message,
             'user_id' => $request->user()->id,
             'status' => 'open',
         ]);

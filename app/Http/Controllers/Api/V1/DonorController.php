@@ -141,6 +141,7 @@ class DonorController extends Controller
         $rows = \App\Models\BloodRequest::query()
             ->with(['city', 'user'])
             ->where('status', 'open')
+            ->where('message', 'like', '[EMERGENCY]%')
             ->where('city_id', $user->city_id)
             ->where('blood_group', $donor->blood_group)
             ->where('user_id', '!=', $user->id)

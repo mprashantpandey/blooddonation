@@ -35,6 +35,47 @@ class ApiV1BloodRequestTest extends TestCase
             ->assertJsonPath('data.blood_group', 'O+');
 
         $this->assertSame(1, BloodRequest::query()->count());
+        $this->assertSame('[EMERGENCY] Urgent', (string) BloodRequest::query()->first()?->message);
+    }
+
+    public function test_new_request_replaces_previous_open_request_for_same_user(): void
+    {
+        $city = City::factory()->create(['status' => 'active']);
+        $user = User::factory()->create(['city_id' => $city->id]);
+        $token = $user->createToken('t')->plainTextToken;
+
+        BloodRequest::query()->create([
+            'patient_name' => 'Old Patient',
+            'user_id' => $user->id,
+            'blood_group' => 'A+',
+            'city_id' => $city->id,
+            'hospital' => 'Old Hospital',
+            'message' => '[EMERGENCY] Previous',
+            'status' => 'open',
+        ]);
+
+        $response = $this->withToken($token)->postJson('/api/v1/blood-requests', [
+            'patient_name' => 'New Patient',
+            'blood_group' => 'O+',
+            'city_id' => $city->id,
+            'hospital' => 'New Hospital',
+            'message' => 'Need blood now',
+        ]);
+
+        $response->assertCreated();
+
+        $openCount = BloodRequest::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'open')
+            ->count();
+        $closedCount = BloodRequest::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'closed')
+            ->count();
+
+        $this->assertSame(1, $openCount);
+        $this->assertSame(1, $closedCount);
+        $this->assertSame('[EMERGENCY] Need blood now', (string) BloodRequest::query()->latest('id')->first()?->message);
     }
 
     public function test_donor_can_respond_interested(): void
@@ -73,5 +114,60 @@ class ApiV1BloodRequestTest extends TestCase
         $this->getJson("/api/v1/blood-requests/{$bloodRequest->id}/interested-donors")
             ->assertOk()
             ->assertJsonCount(1, 'data');
+    }
+
+    public function test_donor_feed_is_citywise_and_only_emergency_open_requests(): void
+    {
+        $cityA = City::factory()->create(['status' => 'active']);
+        $cityB = City::factory()->create(['status' => 'active']);
+
+        $donorUser = User::factory()->create(['city_id' => $cityA->id]);
+        Donor::query()->create([
+            'user_id' => $donorUser->id,
+            'blood_group' => 'A+',
+            'is_available' => true,
+            'is_enabled' => true,
+            'is_verified' => false,
+        ]);
+
+        $sameCityRequester = User::factory()->create(['city_id' => $cityA->id]);
+        $otherCityRequester = User::factory()->create(['city_id' => $cityB->id]);
+
+        $visible = BloodRequest::query()->create([
+            'patient_name' => 'Visible',
+            'user_id' => $sameCityRequester->id,
+            'blood_group' => 'A+',
+            'city_id' => $cityA->id,
+            'hospital' => 'A Hospital',
+            'message' => '[EMERGENCY] Same city',
+            'status' => 'open',
+        ]);
+
+        BloodRequest::query()->create([
+            'patient_name' => 'Other City',
+            'user_id' => $otherCityRequester->id,
+            'blood_group' => 'A+',
+            'city_id' => $cityB->id,
+            'hospital' => 'B Hospital',
+            'message' => '[EMERGENCY] Other city',
+            'status' => 'open',
+        ]);
+
+        BloodRequest::query()->create([
+            'patient_name' => 'Non Emergency',
+            'user_id' => $sameCityRequester->id,
+            'blood_group' => 'A+',
+            'city_id' => $cityA->id,
+            'hospital' => 'A Hospital 2',
+            'message' => '[PLANNED] Future',
+            'status' => 'open',
+        ]);
+
+        $token = $donorUser->createToken('t')->plainTextToken;
+        $response = $this->withToken($token)->getJson('/api/v1/donor/feed');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $visible->id);
     }
 }
