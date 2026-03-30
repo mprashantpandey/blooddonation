@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -70,6 +71,8 @@ class MessageController extends Controller
                 'sender_id' => $m->sender_id,
                 'receiver_id' => $m->receiver_id,
                 'message' => $m->message,
+                'attachment_url' => $m->attachment_url,
+                'attachment_mime' => $m->attachment_mime,
                 'sent_at' => $m->sent_at?->toIso8601String(),
                 'from_me' => (int) $m->sender_id === (int) $me->id,
             ];
@@ -93,13 +96,30 @@ class MessageController extends Controller
         }
 
         $data = $request->validate([
-            'message' => ['required', 'string', 'max:5000'],
+            'message' => ['nullable', 'string', 'max:5000'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
         ]);
+
+        $text = trim((string) ($data['message'] ?? ''));
+        $file = $request->file('attachment');
+        if ($text === '' && $file === null) {
+            return response()->json(['message' => 'Message or attachment is required.'], 422);
+        }
+
+        $attachmentUrl = null;
+        $attachmentMime = null;
+        if ($file !== null) {
+            $path = $file->store('message-attachments', 'public');
+            $attachmentUrl = Storage::disk('public')->url($path);
+            $attachmentMime = $file->getClientMimeType();
+        }
 
         $msg = Message::query()->create([
             'sender_id' => $me->id,
             'receiver_id' => $user->id,
-            'message' => $data['message'],
+            'message' => $text === '' ? null : $text,
+            'attachment_url' => $attachmentUrl,
+            'attachment_mime' => $attachmentMime,
             'sent_at' => now(),
         ]);
 
@@ -113,6 +133,8 @@ class MessageController extends Controller
                 'sender_id' => $msg->sender_id,
                 'receiver_id' => $msg->receiver_id,
                 'message' => $msg->message,
+                'attachment_url' => $msg->attachment_url,
+                'attachment_mime' => $msg->attachment_mime,
                 'sent_at' => $msg->sent_at?->toIso8601String(),
             ],
         ], 201);
