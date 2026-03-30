@@ -116,7 +116,7 @@ class ApiV1BloodRequestTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    public function test_donor_feed_is_citywise_and_only_emergency_open_requests(): void
+    public function test_donor_feed_is_citywise_and_open_requests_only(): void
     {
         $cityA = City::factory()->create(['status' => 'active']);
         $cityB = City::factory()->create(['status' => 'active']);
@@ -163,7 +163,7 @@ class ApiV1BloodRequestTest extends TestCase
             'status' => 'open',
         ]);
 
-        BloodRequest::query()->create([
+        $visiblePlanned = BloodRequest::query()->create([
             'patient_name' => 'Non Emergency',
             'user_id' => $sameCityRequester->id,
             'blood_group' => 'A+',
@@ -177,8 +177,9 @@ class ApiV1BloodRequestTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/v1/donor/feed');
 
         $response->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.id', $visible->id)
-            ->assertJsonPath('data.1.id', $visibleOtherGroup->id);
+            ->assertJsonCount(3, 'data')
+            ->assertJsonFragment(['id' => $visible->id])
+            ->assertJsonFragment(['id' => $visiblePlanned->id])
+            ->assertJsonFragment(['id' => $visibleOtherGroup->id]);
     }
 }

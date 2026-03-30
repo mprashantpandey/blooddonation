@@ -125,7 +125,8 @@ class DonorController extends Controller
     }
 
     /**
-     * Donor feed: open emergency requests in same city.
+     * Donor feed: open requests in same city.
+     * All open requests are treated as emergency until closed.
      * Matching blood group is prioritized first, but not required.
      */
     public function feed(Request $request): JsonResponse
@@ -142,7 +143,6 @@ class DonorController extends Controller
         $rows = \App\Models\BloodRequest::query()
             ->with(['city', 'user'])
             ->where('status', 'open')
-            ->where('message', 'like', '[EMERGENCY]%')
             ->where('city_id', $user->city_id)
             ->where('user_id', '!=', $user->id)
             ->orderByRaw('CASE WHEN blood_group = ? THEN 0 ELSE 1 END', [$donor->blood_group])
